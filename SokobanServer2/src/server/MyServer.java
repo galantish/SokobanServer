@@ -12,8 +12,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import model.highScores.SokobanDBManager;
-
 public class MyServer
 {
 	private static class LockerHolder

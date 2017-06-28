@@ -8,6 +8,7 @@ import db.User;
 import db.QueryParameters;
 import model.highScores.SokobanDBManager;
 import model.sokobanSolver.SokobanSolver;
+import search.Action;
 
 public class MyModel implements iModel
 {
@@ -54,10 +55,36 @@ public class MyModel implements iModel
 	@Override
 	public String getSolution(Level level)
 	{
-		//Compress the solution!
-		String sol = this.solver.solveLevel(level).toString();
-		System.out.println("Solution From The Server = " + sol);
-		return sol;
+		List<Action> sol = this.solver.solveLevel(level);
+		StringBuilder builder = new StringBuilder();
+		
+		for(Action a: sol)
+		{
+			switch (a.getAction()) 
+			{
+				case "right":
+					builder.append("r");
+					break;
+	
+				case "left":
+					builder.append("l");
+					break;
+					
+				case "up":
+					builder.append("u");
+					break;
+					
+				case "down":
+					builder.append("d");
+					break;
+				
+				default:
+					break;
+			}
+		}
+		
+		System.out.println(builder.toString());
+		return builder.toString();
 	}
 
 }
