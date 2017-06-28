@@ -10,16 +10,21 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import db.Level;
+import db.QueryParameters;
 import db.Record;
 
 public class SokobanDBManager 
 {
-	private static SokobanDBManager instance = new SokobanDBManager();
+	private static class SokobanDBManagerHolder
+	{
+		public static final SokobanDBManager instance = new SokobanDBManager();
+	}
+	
 	private SessionFactory factory;
 
 	public static SokobanDBManager getInstance() 
 	{
-		return instance;
+		return SokobanDBManagerHolder.instance;
 	}
 
 	private SokobanDBManager() 

@@ -1,11 +1,10 @@
 package model;
 
 import java.util.List;
-
 import db.Level;
 import db.Record;
 import db.User;
-import model.highScores.QueryParameters;
+import db.QueryParameters;
 
 public interface iModel
 {

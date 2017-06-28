@@ -9,18 +9,29 @@ import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import model.highScores.SokobanDBManager;
 
 public class MyServer
 {
+	private static class LockerHolder
+	{
+		public static final Lock lock = new ReentrantLock();
+	}
+	
 	private int port;
 	private volatile boolean stop;
 	private ExecutorService excutor;
-
+	private Lock lock;
+	
 	public MyServer(int port)
 	{
 		this.port = port;
 		this.stop = false;
-		this.excutor = Executors.newFixedThreadPool(3);
+		this.excutor = Executors.newFixedThreadPool(15);
+		this.lock = LockerHolder.lock;
 	}
 
 	private void runServer() throws Exception
@@ -45,7 +56,7 @@ public class MyServer
 						InputStream inFromClient = aClient.getInputStream();
 						OutputStream outToClient = aClient.getOutputStream();
 
-						new SokobanClientHandler().handleClient(inFromClient, outToClient);
+						new SokobanClientHandler(this.lock).handleClient(inFromClient, outToClient);
 						inFromClient.close();
 						outToClient.close();
 						aClient.close();
