@@ -8,16 +8,24 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
-
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import commands.Commands;
 import db.CompressedLevel;
 import db.Level;
+import db.LevelSolutionData;
 import db.Record;
 import db.User;
 import model.MyModel;
 import model.iModel;
-import model.highScores.Commands;
 import db.QueryParameters;
 
 public class SokobanClientHandler implements iClientHandler
@@ -69,20 +77,20 @@ public class SokobanClientHandler implements iClientHandler
 				case ADD_USER:
 					User user = this.json.fromJson(params, User.class);	
 					this.model.addUser(user);
-				break;	
+					break;	
 					
 				case ADD_LEVEL:
 					this.lock.unlock();
 					CompressedLevel compLevel = this.json.fromJson(params, CompressedLevel.class);	
 					Level level = compLevel.deCompressedLevel();
 					this.model.addLevel(level);
-				break;
+					break;
 				
 				case ADD_RECORD:
 					this.lock.unlock();
 					Record record = this.json.fromJson(params, Record.class);	
 					this.model.addRecord(record);
-				break;
+					break;
 				
 				case DB_QUERY:
 					this.lock.unlock();
@@ -91,9 +99,26 @@ public class SokobanClientHandler implements iClientHandler
 					String stringJson = this.json.toJson(records);
 					this.writeToClient.print(stringJson);
 					this.writeToClient.flush();
+					break;
+				
+				case GET_CLUE:
+					this.lock.unlock();
+					CompressedLevel compLevelToClue = this.json.fromJson(params, CompressedLevel.class);
+					Level levelToClue = compLevelToClue.deCompressedLevel();
+					if(levelToClue == null)
+					{
+						String jsonLevel = this.json.toJson("ERROR");
+						this.writeToClient.println(jsonLevel);
+						this.writeToClient.flush();
+						break;
+					}
 					
-				break;
-					
+					String sol = this.model.getSolution(levelToClue);
+					String jsonClue = this.json.toJson(sol.toString());
+					this.writeToClient.println(jsonClue);
+					this.writeToClient.flush();
+					break;
+				
 				case GET_SOLUTION:
 					this.lock.unlock();
 					CompressedLevel compLevelToSol = this.json.fromJson(params, CompressedLevel.class);
@@ -106,13 +131,43 @@ public class SokobanClientHandler implements iClientHandler
 						break;
 					}
 					
-					String sol = this.model.getSolution(levelToSolve);
-					String jsonLevel = this.json.toJson(sol.toString());
-					this.writeToClient.println(jsonLevel);
-					this.writeToClient.flush();
+					//Checking if there is a solution to the current level
+					Client client = ClientBuilder.newClient();
+					WebTarget webTarget2 = client.target("http://localhost:8080/RESTSokobenService/SokobanServices/get/" + levelToSolve.getLevelID());
+					Invocation.Builder invocationBuilder2 = webTarget2.request();
+					Response response = invocationBuilder2.get();
+					String msgJson = response.readEntity(String.class);
+					System.out.println("Message: " + msgJson);
 					
-				break;
-				
+					if(msgJson.equals("null"))
+					{
+						System.out.println("From The Solver...");
+						String mySol = this.model.getSolution(levelToSolve);
+						String jsonLevel = this.json.toJson(mySol.toString());
+						this.writeToClient.println(jsonLevel);
+						this.writeToClient.flush();
+						
+						//Sending the level's solution to the server
+						LevelSolutionData levelSolution = new LevelSolutionData(levelToSolve.getLevelID(), mySol, null);
+						String jsonSolution = this.json.toJson(levelSolution);
+						
+						WebTarget webTarget = client.target("http://localhost:8080/RESTSokobenService/SokobanServices/add");
+						Invocation.Builder invocationBuilder = webTarget.request();
+						invocationBuilder.post(Entity.entity(jsonSolution, MediaType.TEXT_PLAIN));
+						
+						break;
+					}
+					
+					else
+					{
+						System.out.println("From Web Service...");
+						LevelSolutionData levelSolution = this.json.fromJson(msgJson, LevelSolutionData.class);
+						String jsonLevel = this.json.toJson(levelSolution.getSolution());
+						this.writeToClient.println(jsonLevel);
+						this.writeToClient.flush();
+						break;
+					}
+					
 				default:
 					break;
 			}

@@ -16,8 +16,6 @@
 	<classpathentry kind="lib" path="libs/sqljdbc42.jar"/>
 	<classpathentry kind="lib" path="libs/stripsLib.jar"/>
 	<classpathentry kind="lib" path="libs/gson-2.6.2.jar"/>
-	<classpathentry kind="lib" path="libs/searchLib.jar"/>
-	<classpathentry kind="lib" path="libs/sokobanLib.jar"/>
 	<classpathentry kind="lib" path="libs/aopalliance-repackaged-2.5.0-b32.jar"/>
 	<classpathentry kind="lib" path="libs/hk2-api-2.5.0-b32.jar"/>
 	<classpathentry kind="lib" path="libs/hk2-locator-2.5.0-b32.jar"/>
@@ -38,5 +36,7 @@
 	<classpathentry kind="lib" path="libs/osgi-resource-locator-1.0.1.jar"/>
 	<classpathentry kind="lib" path="libs/persistence-api-1.0.jar"/>
 	<classpathentry kind="lib" path="libs/validation-api-1.1.0.Final.jar"/>
+	<classpathentry kind="lib" path="libs/searchLib.jar"/>
+	<classpathentry kind="lib" path="libs/sokobanLib.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
