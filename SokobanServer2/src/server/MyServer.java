@@ -1,8 +1,5 @@
 package server;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -11,6 +8,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleListProperty;
 
 public class MyServer
 {
@@ -24,6 +23,8 @@ public class MyServer
 	private ExecutorService excutor;
 	private Lock lock;
 	
+	private static int clientId = 0;
+
 	public MyServer(int port)
 	{
 		this.port = port;
@@ -35,7 +36,7 @@ public class MyServer
 	private void runServer() throws Exception
 	{
 		ServerSocket server = new ServerSocket(this.port);
-		System.out.println("Server alive");
+		System.out.println("Server is alive..");
 		server.setSoTimeout(1000);
 
 		while (!stop)
@@ -47,20 +48,10 @@ public class MyServer
 
 				excutor.execute(() ->
 				{
-					try
-					{
-						System.out.println("The client is connected");
+					System.out.println("The client is connected");
+						
+					new SokobanClientHandler(this.lock).handleClient(++clientId, aClient);
 
-						InputStream inFromClient = aClient.getInputStream();
-						OutputStream outToClient = aClient.getOutputStream();
-
-						new SokobanClientHandler(this.lock).handleClient(inFromClient, outToClient);
-						inFromClient.close();
-						outToClient.close();
-						aClient.close();
-					}
-
-					catch (IOException e){}
 				});
 
 			} 

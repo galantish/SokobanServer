@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import javax.ws.rs.client.Client;
@@ -19,11 +20,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import commands.Commands;
+import commons.MyClient;
 import db.CompressedLevel;
 import db.Level;
 import db.LevelSolutionData;
 import db.Record;
 import db.User;
+import javafx.scene.shape.StrokeLineJoin;
+import model.AdminModel;
 import model.MyModel;
 import model.iModel;
 import db.QueryParameters;
@@ -48,11 +52,33 @@ public class SokobanClientHandler implements iClientHandler
 	}
 	
 	@Override
-	public void handleClient(InputStream inFromClient, OutputStream outToClient) 
+	public void handleClient(int clientId, Socket socket) 
 	{
-		this.readFromClient = new BufferedReader(new InputStreamReader(inFromClient));
-		this.writeToClient = new PrintWriter(outToClient);
-		handlerClientCommands();
+		try
+		{ 
+			InputStream inFromClient = socket.getInputStream();
+			OutputStream outToClient = socket.getOutputStream();
+			
+			this.readFromClient = new BufferedReader(new InputStreamReader(inFromClient));
+			this.writeToClient = new PrintWriter(outToClient);
+			
+			String strJson = this.readFromClient.readLine();
+			String str = this.json.fromJson(strJson, String.class);
+			
+			str = "client " + clientId + str;
+			
+			MyClient client = new MyClient(socket, socket.getPort(), ++clientId, socket.getRemoteSocketAddress().toString());
+			
+			String msg = "Task Number " + clientId + " From Client On IP Address: " + socket.getRemoteSocketAddress().toString();
+			
+			AdminModel.getInstance().addClient(msg, client);
+			handlerClientCommands();
+			AdminModel.getInstance().disconnectClient(msg);
+		} 
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}		
 	}
 	
 	public void handlerClientCommands()
@@ -68,7 +94,6 @@ public class SokobanClientHandler implements iClientHandler
 			commandString = readFromClient.readLine();
 
 			command = this.json.fromJson(commandString, Commands.class);
-			System.out.println("COMMAND = " + command);
 			
 			params = this.readFromClient.readLine();
 
@@ -133,7 +158,7 @@ public class SokobanClientHandler implements iClientHandler
 					
 					//Checking if there is a solution to the current level
 					Client client = ClientBuilder.newClient();
-					WebTarget webTarget2 = client.target("http://localhost:8080/RESTSokobenService/SokobanServices/get/" + levelToSolve.getLevelID());
+					WebTarget webTarget2 = client.target("http://localhost:8080/RESTSokobenService2/SokobanServices/get/" + levelToSolve.getLevelID());
 					Invocation.Builder invocationBuilder2 = webTarget2.request();
 					Response response = invocationBuilder2.get();
 					String msgJson = response.readEntity(String.class);
@@ -141,7 +166,6 @@ public class SokobanClientHandler implements iClientHandler
 					
 					if(msgJson.equals("null"))
 					{
-						System.out.println("From The Solver...");
 						String mySol = this.model.getSolution(levelToSolve);
 						String jsonLevel = this.json.toJson(mySol.toString());
 						this.writeToClient.println(jsonLevel);
@@ -151,7 +175,7 @@ public class SokobanClientHandler implements iClientHandler
 						LevelSolutionData levelSolution = new LevelSolutionData(levelToSolve.getLevelID(), mySol, null);
 						String jsonSolution = this.json.toJson(levelSolution);
 						
-						WebTarget webTarget = client.target("http://localhost:8080/RESTSokobenService/SokobanServices/add");
+						WebTarget webTarget = client.target("http://localhost:8080/RESTSokobenService2/SokobanServices/add");
 						Invocation.Builder invocationBuilder = webTarget.request();
 						invocationBuilder.post(Entity.entity(jsonSolution, MediaType.TEXT_PLAIN));
 						
@@ -160,7 +184,6 @@ public class SokobanClientHandler implements iClientHandler
 					
 					else
 					{
-						System.out.println("From Web Service...");
 						LevelSolutionData levelSolution = this.json.fromJson(msgJson, LevelSolutionData.class);
 						String jsonLevel = this.json.toJson(levelSolution.getSolution());
 						this.writeToClient.println(jsonLevel);
