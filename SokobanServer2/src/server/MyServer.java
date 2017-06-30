@@ -1,5 +1,6 @@
 package server;
 
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -8,8 +9,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.SimpleListProperty;
 
 public class MyServer
 {
@@ -48,10 +47,16 @@ public class MyServer
 
 				excutor.execute(() ->
 				{
-					System.out.println("The client is connected");
-						
-					new SokobanClientHandler(this.lock).handleClient(++clientId, aClient);
-
+					try
+					{
+						System.out.println("The client is connected");
+						new SokobanClientHandler(this.lock).handleClient(++clientId, aClient);
+						aClient.close();
+					} 
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
 				});
 
 			} 

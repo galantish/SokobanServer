@@ -1,1 +1,13 @@
 /* JavaFX CSS - Leave this comment until you have at least create one rule which uses -fx-Property */
+	
+.header
+{	
+	-fx-background-image: url("../../resources/background.png");
+}
+
+.refresh
+{
+	-fx-border-radius: 10px;
+	-fx-background-color: #D3D3D3 ;
+	-fx-border-color: white;
+}

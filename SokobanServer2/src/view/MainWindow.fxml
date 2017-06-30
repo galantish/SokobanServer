@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:controller="view.MainWindowController" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="556.0" prefWidth="699.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="579.0" prefWidth="699.0" styleClass="header" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.MainWindowController">
    <children>
       <Label alignment="CENTER" layoutX="121.0" layoutY="34.0" prefHeight="73.0" prefWidth="421.0" text="Server Admin">
          <font>
@@ -14,6 +14,14 @@
          </font>
       </Label>
       <ListView fx:id="listView" layoutX="54.0" layoutY="107.0" prefHeight="354.0" prefWidth="592.0" />
-      <Button onAction="#habdleButtonAction" layoutX="308.0" layoutY="478.0" mnemonicParsing="false" text="Refresh" />
+      <Button layoutX="279.0" layoutY="474.0" mnemonicParsing="false" onAction="#habdleButtonAction" prefHeight="43.0" prefWidth="120.0" styleClass="refresh" text="Refresh Tasks">
+         <font>
+            <Font name="System Bold" size="15.0" />
+         </font></Button>
+      <Button layoutX="279.0" layoutY="525.0" mnemonicParsing="false" onAction="#stopServer" prefHeight="40.0" prefWidth="120.0" styleClass="refresh" text="Stop Server">
+         <font>
+            <Font name="System Bold" size="15.0" />
+         </font>
+      </Button>
    </children>
 </AnchorPane>
